@@ -3,17 +3,72 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DeliveryTests {
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "Cost for Distance {0}, Dimension {1}, Fragile {2}, Workload {3}")
+    @CsvSource({
+            "1, small, true, normal, 450",
+            "1, small, false, increase, 400",
+            "1,	small,	true,	high, 630",
+            "1,	large,	false,	veryHigh, 400",
+            "10,	small,	false,	veryHigh, 400",
+            "10,	small,	true,	normal, 500",
+            "10,	small,	false,	increase, 400",
+            "10,	large,	true,	high, 840",
+            "30,	small,	true,	high, 840",
+            "30,	large,	false,	veryHigh, 640",
+            "30,	small,	true,	normal, 600",
+            "30,	large,	false,	increase, 480",
+            "31,	small,	false,	increase, 480",
+            "31,	small,	false,	veryHigh, 640"
+    })
+    @Tag("Positive")
+    void deliveryPairTests(int destinationDistance, CargoDimension cargoDimension, boolean isFragile, ServiceWorkload serviceWorkload, double expectedDeliveryCost) {
+        Delivery delivery = new Delivery(destinationDistance, cargoDimension, isFragile, serviceWorkload);
+        assertEquals(expectedDeliveryCost, delivery.calculateShippingCost());
+    }
+
+    @Test
+    @Tag("Negative")
+    @DisplayName("Fragile & Distance 30+")
+    void deliveryFragileWithLargeDistanceTest() {
+        // Здесь размещаем код теста
+        CargoDimension cargoDimensions = CargoDimension.large;
+        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
+        int destinationDistance = 31;
+        boolean isFragile = true;
+        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
+
+        Exception thrown = assertThrows(UnsupportedOperationException.class, () -> delivery.calculateShippingCost());
+        Assertions.assertEquals("Fragile cargo cannot be delivered for the distance more than 30!", thrown.getMessage());
+    }
+
+    @Test
+    @Tag("Negative")
+    @DisplayName("Negative Distance")
+    void deliveryNegativeDistanceTest() {
+        // Здесь размещаем код теста
+        CargoDimension cargoDimensions = CargoDimension.large;
+        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
+        int destinationDistance = -1;
+        boolean isFragile = true;
+        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
+
+        Exception thrown = assertThrows(IllegalArgumentException.class, () -> delivery.calculateShippingCost());
+        Assertions.assertEquals("destinationDistance should be a positive number!", thrown.getMessage());
+    }
+
+
+
+
+/*    @ParameterizedTest(name = "Cost for Distance {0}, Dimension small, Fragile true, Workload normal")
     @ValueSource(ints = {1, 10, 30})
     @Tag("Positive")
-    @DisplayName("Cost for Distance {1, 10, 30}, Dimension small, Fragile true, Workload normal")
     void deliveryPairOneTest(int parameter) {
         CargoDimension cargoDimensions = CargoDimension.small;
         ServiceWorkload serviceWorkload = ServiceWorkload.normal;
@@ -227,34 +282,5 @@ class DeliveryTests {
 
         assertEquals(expectedDeliveryCost, actualDeliveryCost);
     }
-
-    @Test
-    @Tag("Negative")
-    @DisplayName("Fragile & Distance 30+")
-    void deliveryFragileWithLargeDistanceTest() {
-        // Здесь размещаем код теста
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance= 31;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        Exception thrown = assertThrows(UnsupportedOperationException.class, () -> delivery.calculateShippingCost());
-        Assertions.assertEquals("Fragile cargo cannot be delivered for the distance more than 30!", thrown.getMessage());
-    }
-
-    @Test
-    @Tag("Negative")
-    @DisplayName("Negative Distance")
-    void deliveryNegativeDistanceTest() {
-        // Здесь размещаем код теста
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance= -1;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        Exception thrown = assertThrows(IllegalArgumentException.class, () -> delivery.calculateShippingCost());
-        Assertions.assertEquals("destinationDistance should be a positive number!", thrown.getMessage());
-    }
+*/
 }
