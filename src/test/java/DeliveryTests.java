@@ -28,21 +28,32 @@ class DeliveryTests {
             "31,	small,	false,	veryHigh, 640"
     })
     @Tag("Positive")
-    void deliveryPairTests(int destinationDistance, CargoDimension cargoDimension, boolean isFragile, ServiceWorkload serviceWorkload, double expectedDeliveryCost) {
+    void deliveryPairTests(double destinationDistance, CargoDimension cargoDimension, boolean isFragile, ServiceWorkload serviceWorkload, double expectedDeliveryCost) {
         Delivery delivery = new Delivery(destinationDistance, cargoDimension, isFragile, serviceWorkload);
         assertEquals(expectedDeliveryCost, delivery.calculateShippingCost());
     }
 
     @Test
+    @Tag("Positive")
+    @DisplayName("Fragile & Distance 29.999999")
+    void BoundaryValueFirstTest() {
+        Delivery delivery = new Delivery(29.999999, CargoDimension.large, true, ServiceWorkload.increase);
+        assertEquals(840, delivery.calculateShippingCost());
+    }
+
+    @Test
+    @Tag("Positive")
+    @DisplayName("Fragile & Distance 30")
+    void BoundaryValueSecondTest() {
+        Delivery delivery = new Delivery(30, CargoDimension.large, true, ServiceWorkload.increase);
+        assertEquals(840, delivery.calculateShippingCost());
+    }
+
+    @Test
     @Tag("Negative")
-    @DisplayName("Fragile & Distance 30+")
+    @DisplayName("Fragile & Distance 30.000001")
     void deliveryFragileWithLargeDistanceTest() {
-        // Здесь размещаем код теста
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance = 31;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
+        Delivery delivery = new Delivery(30.000001, CargoDimension.large, true, ServiceWorkload.increase);
 
         Exception thrown = assertThrows(UnsupportedOperationException.class, () -> delivery.calculateShippingCost());
         Assertions.assertEquals("Fragile cargo cannot be delivered for the distance more than 30!", thrown.getMessage());
@@ -52,235 +63,19 @@ class DeliveryTests {
     @Tag("Negative")
     @DisplayName("Negative Distance")
     void deliveryNegativeDistanceTest() {
-        // Здесь размещаем код теста
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance = -1;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
+        Delivery delivery = new Delivery(-1, CargoDimension.large, true, ServiceWorkload.veryHigh);
 
         Exception thrown = assertThrows(IllegalArgumentException.class, () -> delivery.calculateShippingCost());
         Assertions.assertEquals("destinationDistance should be a positive number!", thrown.getMessage());
     }
 
-
-
-
-/*    @ParameterizedTest(name = "Cost for Distance {0}, Dimension small, Fragile true, Workload normal")
-    @ValueSource(ints = {1, 10, 30})
-    @Tag("Positive")
-    void deliveryPairOneTest(int parameter) {
-        CargoDimension cargoDimensions = CargoDimension.small;
-        ServiceWorkload serviceWorkload = ServiceWorkload.normal;
-        int destinationDistance = parameter;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost;
-        switch (destinationDistance){
-            case 1: expectedDeliveryCost = 450;
-                break;
-            case 10: expectedDeliveryCost = 500;
-                break;
-            default: expectedDeliveryCost = 600;
-        }
-
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
     @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 1, Dimension large, Fragile false, Workload increase")
-    void deliveryPairTwoTest() {
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.increase;
-        int destinationDistance= 1;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 400;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
+    @Tag("Negative")
+    @DisplayName("Max Double for distance")
+    void maxDoubleForDistanceTest() {
+        Delivery delivery = new Delivery(Double.MAX_VALUE, CargoDimension.large, false, ServiceWorkload.veryHigh);
+        Exception thrown = assertThrows(IllegalArgumentException.class, () -> delivery.calculateShippingCost());
+        Assertions.assertEquals("It is not possible to place an order for a distance of more than 1000 km!", thrown.getMessage());
     }
 
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 1, Dimension small, Fragile true, Workload high")
-    void deliveryPairThreeTest() {
-        CargoDimension cargoDimensions = CargoDimension.small;
-        ServiceWorkload serviceWorkload = ServiceWorkload.high;
-        int destinationDistance= 1;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 630;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 1, Dimension large, Fragile false, Workload veryHigh")
-    void deliveryPairFourTest() {
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance= 1;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 400;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 10, Dimension small, Fragile false, Workload veryHigh")
-    void deliveryPairFiveTest() {
-        CargoDimension cargoDimensions = CargoDimension.small;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance= 10;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 400;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 10, Dimension large, Fragile true, Workload normal")
-    void deliveryPairSixTest() {
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.normal;
-        int destinationDistance= 10;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 600;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 10, Dimension small, Fragile false, Workload increase")
-    void deliveryPairSevenTest() {
-        CargoDimension cargoDimensions = CargoDimension.small;
-        ServiceWorkload serviceWorkload = ServiceWorkload.increase;
-        int destinationDistance= 10;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 400;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 10, Dimension large, Fragile false, Workload high")
-    void deliveryPairEightTest() {
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.high;
-        int destinationDistance= 10;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 420;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 30, Dimension small, Fragile true, Workload high")
-    void deliveryPairNineTest() {
-        CargoDimension cargoDimensions = CargoDimension.small;
-        ServiceWorkload serviceWorkload = ServiceWorkload.high;
-        int destinationDistance= 30;
-        boolean isFragile = true;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 840;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 30, Dimension large, Fragile false, Workload veryHigh")
-    void deliveryPairTenTest() {
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance= 30;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 640;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 30, Dimension large, Fragile false, Workload increase")
-    void deliveryPairTwelveTest() {
-        CargoDimension cargoDimensions = CargoDimension.large;
-        ServiceWorkload serviceWorkload = ServiceWorkload.increase;
-        int destinationDistance= 30;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 480;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 30, Dimension small, Fragile false, Workload increase")
-    void deliveryPairThirteenTest() {
-        CargoDimension cargoDimensions = CargoDimension.small;
-        ServiceWorkload serviceWorkload = ServiceWorkload.increase;
-        int destinationDistance= 31;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 480;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-
-    @Test
-    @Tag("Positive")
-    @DisplayName("Cost for Distance 30, Dimension small, Fragile false, Workload veryHigh")
-    void deliveryPairFourteenTest() {
-        CargoDimension cargoDimensions = CargoDimension.small;
-        ServiceWorkload serviceWorkload = ServiceWorkload.veryHigh;
-        int destinationDistance= 31;
-        boolean isFragile = false;
-        Delivery delivery = new Delivery(destinationDistance, cargoDimensions, isFragile, serviceWorkload);
-
-        double expectedDeliveryCost = 640;
-        double actualDeliveryCost = delivery.calculateShippingCost();
-
-        assertEquals(expectedDeliveryCost, actualDeliveryCost);
-    }
-*/
 }
